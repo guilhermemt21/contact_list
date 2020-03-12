@@ -1,0 +1,28 @@
+version: '3'
+networks:
+    contact-list-network:
+        driver: bridge
+services:
+    mysql_service:
+        build:
+            dockerfile: ./docker_images/mysql.dockerfile
+            context: .
+        image: mysql_image
+        container_name: mysql_service
+        ports:
+            - "3306:3306"
+        networks:
+            - contact-list-network
+    contact_list_service:
+        build:
+            dockerfile: ./docker_images/server.dockerfile
+            context: .
+        image: contact_list_image
+        container_name: contact_list_service
+        command: bash -c "./wait-for-it.sh mysql_service:3306 && java -jar target/contactlist-1.0.jar"
+        ports:
+            - "8080:8080"
+        networks:
+            - contact-list-network
+        depends_on:
+            - mysql_service
